@@ -30,24 +30,20 @@ namespace ValheimRecycle
         {
             return !recycleButton.interactable;
         }
-
-        internal void Awake()
+        public ValheimRecycle()
         {
-            Logger.LogInfo("AWAKE");
             instance = this;
             harmony = Harmony.CreateAndPatchAll(typeof(InventoryGuiPatch));
             
-            tabPosition = Config.Bind("General",   
-                             "TabPosition",  
-                             RecycleConfig.TabPositions.Left,
+            tabPosition = Config.Bind("General", "TabPosition", RecycleConfig.TabPositions.Left,
                              "The Recycle tab's position in the crafting menu after Upgrade. (Requires restart)");
-            resourceMultiplier = Config.Bind("General",
-                 "ResourceMultiplier",
-                 1f,
+            resourceMultiplier = Config.Bind("General", "ResourceMultiplier", 1f,
                  new ConfigDescription("The amount of resources to return from recycling (0 to 1, where 1 returns 100% of the resources and 0 returns 0%)", new AcceptableValueRange<float>(0,1))
                  );
-            preserveOriginalItem = Config.Bind("General", "PreserveOriginalItem", true, "[EXPERIMENTAL]\nWhether the original item's data should be preserved when downgrading. Useful for mods which add extra properties to items like EpicLoot.\nTurn off if experiencing problems.");
-            nexusID = Config.Bind<int>("General", "NexusID", 425, "Nexus mod ID for updates");
+            preserveOriginalItem = Config.Bind("General", "PreserveOriginalItem", true, 
+                "[EXPERIMENTAL]\nWhether the original item's data should be preserved when downgrading. Useful for mods which add extra properties to items like EpicLoot.\nTurn off if experiencing problems.");
+            nexusID = Config.Bind<int>("General", "NexusID", 425,
+                "Nexus mod ID for updates");
 
         }
         internal void OnDestroy()
@@ -65,8 +61,6 @@ namespace ValheimRecycle
                 return instance.recycleObject;
 
             }
-            Logger.LogInfo("CreateRecycleButton");
-
             recycleObject = Instantiate(InventoryGui.instance.m_tabUpgrade.gameObject, InventoryGui.instance.m_tabUpgrade.gameObject.transform.parent);
             if (recycleObject is null)
             {
@@ -89,14 +83,12 @@ namespace ValheimRecycle
         MethodInfo methodInfo = null;
         internal void SelectRecycleTab()
         {
-            Logger.LogDebug("Selected recycle");
             recycleButton.interactable = false;
             InventoryGui.instance.m_tabCraft.interactable = true;
             InventoryGui.instance.m_tabUpgrade.interactable = true;
             if (methodInfo == null)
                 methodInfo = typeof(InventoryGui).GetMethod("UpdateCraftingPanel", BindingFlags.NonPublic | BindingFlags.Instance);
             methodInfo.Invoke(InventoryGui.instance, new object[] { false });
-
         }
 
         internal void RebuildRecycleTab()
