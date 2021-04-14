@@ -47,51 +47,54 @@ namespace ValheimRecycle
                 }
             }
         }
-        internal static void DoRecycle(Player player, InventoryGui __instance)
+        static MethodInfo methodInfo_UpdateCraftingPanel = null;
+        internal static void DoRecycle(Player player, InventoryGui __instance, ref Recipe m_craftRecipe, ref ItemDrop.ItemData m_craftUpgradeItem)
         {
-            if (__instance.m_craftRecipe == null)
+            if (m_craftRecipe == null)
             {
                 return;
             }
-            int downgradedQuality = (__instance.m_craftUpgradeItem != null) ? (__instance.m_craftUpgradeItem.m_quality - 1) : 0;
+            int downgradedQuality = (m_craftUpgradeItem != null) ? (m_craftUpgradeItem.m_quality - 1) : 0;
 
-            if (__instance.m_craftUpgradeItem != null && !player.GetInventory().ContainsItem(__instance.m_craftUpgradeItem))
+            if (m_craftUpgradeItem != null && !player.GetInventory().ContainsItem(m_craftUpgradeItem))
             {
                 return;
             }
-            if (__instance.m_craftUpgradeItem == null && HaveEmptySlotsForRecipe(player.GetInventory(), __instance.m_craftRecipe, downgradedQuality + 1))
+            if (m_craftUpgradeItem == null && HaveEmptySlotsForRecipe(player.GetInventory(), m_craftRecipe, downgradedQuality + 1))
             {
                 return;
             }
-            int variant = __instance.m_craftUpgradeItem.m_variant;
+            int variant = m_craftUpgradeItem.m_variant;
             long playerID = player.GetPlayerID();
             string playerName = player.GetPlayerName();
-            if (__instance.m_craftUpgradeItem != null)
+            if (m_craftUpgradeItem != null)
             {
                 if (downgradedQuality >= 1)
                 {
-                    player.UnequipItem(__instance.m_craftUpgradeItem, true);
+                    player.UnequipItem(m_craftUpgradeItem, true);
                     if (ValheimRecycle.instance.preserveOriginalItem.Value)
                     {
-                        __instance.m_craftUpgradeItem.m_quality = downgradedQuality;
+                        m_craftUpgradeItem.m_quality = downgradedQuality;
                     }
                     else
                     {
-                        player.GetInventory().RemoveItem(__instance.m_craftUpgradeItem);
-                        player.GetInventory().AddItem(__instance.m_craftRecipe.m_item.gameObject.name, __instance.m_craftRecipe.m_amount, downgradedQuality, variant, playerID, playerName);
+                        player.GetInventory().RemoveItem(m_craftUpgradeItem);
+                        player.GetInventory().AddItem(m_craftRecipe.m_item.gameObject.name, m_craftRecipe.m_amount, downgradedQuality, variant, playerID, playerName);
                     }
                 }
                 else
                 {
-                    player.UnequipItem(__instance.m_craftUpgradeItem, true);
-                    player.GetInventory().RemoveItem(__instance.m_craftUpgradeItem);
+                    player.UnequipItem(m_craftUpgradeItem, true);
+                    player.GetInventory().RemoveItem(m_craftUpgradeItem);
                 }
 
             }
 
-            AddResources(player.GetInventory(), __instance.m_craftRecipe.m_resources, downgradedQuality);
+            AddResources(player.GetInventory(), m_craftRecipe.m_resources, downgradedQuality);
 
-            __instance.UpdateCraftingPanel(true);
+            if (methodInfo_UpdateCraftingPanel == null)
+                methodInfo_UpdateCraftingPanel = typeof(InventoryGui).GetMethod("UpdateCraftingPanel", BindingFlags.NonPublic | BindingFlags.Instance);
+            methodInfo_UpdateCraftingPanel.Invoke(__instance, new object[] { true });
 
             CraftingStation currentCraftingStation = Player.m_localPlayer.GetCurrentCraftingStation();
             if (currentCraftingStation)
@@ -103,8 +106,7 @@ namespace ValheimRecycle
                 __instance.m_craftItemDoneEffects.Create(player.transform.position, Quaternion.identity, null, 1f);
             }
             Game.instance.GetPlayerProfile().m_playerStats.m_crafts++;
-            Gogan.LogEvent("Game", "Crafted", __instance.m_craftRecipe.m_item.m_itemData.m_shared.m_name, (long)downgradedQuality);
-            Debug.Log("did I return");
+            Gogan.LogEvent("Game", "Crafted", m_craftRecipe.m_item.m_itemData.m_shared.m_name, (long)downgradedQuality);
         }
   
     }

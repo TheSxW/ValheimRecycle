@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -85,14 +86,16 @@ namespace ValheimRecycle
             recycleObject.SetActive(false);
             return recycleObject;
         }
-
+        MethodInfo methodInfo = null;
         internal void SelectRecycleTab()
         {
             Logger.LogDebug("Selected recycle");
             recycleButton.interactable = false;
-            InventoryGui.m_instance.m_tabCraft.interactable = true;
-            InventoryGui.m_instance.m_tabUpgrade.interactable = true;
-            InventoryGui.m_instance.UpdateCraftingPanel(false);
+            InventoryGui.instance.m_tabCraft.interactable = true;
+            InventoryGui.instance.m_tabUpgrade.interactable = true;
+            if (methodInfo == null)
+                methodInfo = typeof(InventoryGui).GetMethod("UpdateCraftingPanel", BindingFlags.NonPublic | BindingFlags.Instance);
+            methodInfo.Invoke(InventoryGui.instance, new object[] { false });
 
         }
 
